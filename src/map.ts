@@ -96,13 +96,20 @@ export async function mapLimit<V>(input: any, limit: number, iteratee: any): Pro
     ++i;
   }
 
-  const execute = async () => {
-    while (allValues.length > 0) {
-      // tslint:disable-next-line:no-any
-      const [val, index, key] = allValues.pop();
-      results[index] = await iteratee(val, key);
-    }
-  };
+  const execute = () => new Promise((resolve, reject) => {
+    setImmediate(() => {
+      try {
+        while (allValues.length > 0) {
+          // tslint:disable-next-line:no-any
+          const [val, index, key] = allValues.pop();
+          results[index] = await iteratee(val, key);
+        }
+        return void resolve();
+      } catch (err) {
+        reutrn void reject(err);
+      }
+    });
+  });
 
   const allExecutors = [];
   for (let j = 0; j < limit; ++j) {
